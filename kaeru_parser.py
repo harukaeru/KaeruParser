@@ -15,19 +15,17 @@ def preprocessing(text, tab=4):
 
 
 class Action:
-    def __init__(self, name):
+    def __init__(self, name, entity):
         self.name = name
-        self.entity = None
+        self.entity = entity
 
 
 class Entity:
     def __init__(self, name):
         self.name = name
         self.attribute = ''
+        self.action_text = ''
         self.actions = []
-
-    def set_action(self, name):
-        self.action = Action(name=name)
 
 
 class Grammar:
@@ -125,15 +123,31 @@ class Printer:
 
 class Compiler:
     lexer_class = Lexer
+    initial_descriptor_values = {'attribute': '', 'action_text': ''}
 
     def __init__(self, lexer=None, **kwargs):
         if not lexer:
-            self.lexer = Lexer()
+            self.lexer = self.lexer_class()
         elif inspect.isclass(lexer):
             self.lexer = lexer(**kwargs)
 
         self.tokens = []
         self.entity_table = {}
+        self.current_descriptor = None
+
+        for descriptor_name, value in self.initial_descriptor_values.items():
+            setattr(self, descriptor_name, value)
+
+    def init_descriptor(self, descriptor_name):
+        setattr(
+            self, descriptor_name,
+            self.initial_descriptor_values[descriptor_name]
+        )
+
+    def use_assigned_value(self, descriptor_name):
+        data = getattr(self, descriptor_name)
+        self.init_descriptor(descriptor_name)
+        return data
 
     def pop(self):
         if not self.tokens:
@@ -168,17 +182,12 @@ class Compiler:
 
         return getattr(self, 'output_%s' % t)()
 
-    def assign(self, data):
-        assign = getattr(*self.state)
-        if inspect.ismethod(assign) or inspect.ismethod(assign):
-            assign(data)
-            return
-
-        if assign:
-            assign = assign + '\n' + data
-        else:
-            assign = data
-        setattr(*(self.state + (data,)))
+    def assign(self, text):
+        data = getattr(self, self.current_descriptor)
+        setattr(
+            self, self.current_descriptor,
+            data + '\n' + text if data else text
+        )
 
     def get_entity(self, name):
         entity = self.entity_table.get(name)
@@ -191,25 +200,28 @@ class Compiler:
         entity_name = self.token['text']
         self.entity = self.get_entity(name=entity_name)
 
-        self.state = (self.entity, 'attribute')
+        self.current_descriptor = 'attribute'
 
         while self.peek()['type'] != 'entity_start':
             self.pop()
             self.token_to_code()
 
     def output_entity_separation(self):
-        self.state = (self.entity, 'set_action')
+        self.entity.attribute = self.use_assigned_value('attribute')
+        self.current_descriptor = 'action_text'
 
     def output_text(self):
         text = self.token['text']
         self.assign(text)
 
     def output_newline(self):
-        self.assign('\n')
+        self.assign('')
 
     def output_next_entity(self):
         next_entity_name = self.token['text']
         next_entity = self.get_entity(name=next_entity_name)
-        self.entity.action.entity = next_entity
-        self.entity.actions.append(self.entity.action)
-        self.entity.action = None
+        self.entity.actions.append(
+            Action(
+                name=self.use_assigned_value('action_text'), entity=next_entity
+            )
+        )
