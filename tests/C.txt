@@ -1,0 +1,19 @@
+[Home]
+This is home
+---
+click
+===> TodoList
+quit
+===> End
+
+TodoList]
+Todo List
+---
+addTodo
+===> TodoList
+removeTodo
+===> TodoList
+back
+===> Home
+quit
+===> End

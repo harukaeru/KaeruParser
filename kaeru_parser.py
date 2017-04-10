@@ -61,7 +61,9 @@ class Lexer:
         return self.parse(text)
 
     def parse(self, text):
+        self.full_text = text
         text = text.rstrip('\n')
+        self.l = 0
 
         def manipulate(text):
             for grammar_name in self.grammar.GRAMMAR_LIST:
@@ -85,30 +87,39 @@ class Lexer:
     def parse_newline(self, m):
         length = len(m.group(0))
         if length > 1:
-            self.tokens.append({'type': 'newline'})
+            self.tokens.append({'type': 'newline', 'line': self.l})
+        self.l += length
 
     def parse_entity(self, m):
         self.tokens.append({
             'type': 'entity_start',
             'text': m.group(1),
+            'line': self.l
         })
+        self.l += len(m.group(0))
 
     def parse_partition(self, m):
         self.tokens.append({
             'type': 'entity_separation',
+            'line': self.l
         })
+        self.l += len(m.group(0))
 
     def parse_next_entity(self, m):
         self.tokens.append({
             'type': 'next_entity',
             'text': m.group(1),
+            'line': self.l
         })
+        self.l += len(m.group(0))
 
     def parse_text(self, m):
         self.tokens.append({
             'type': 'text',
-            'text': m.group(1)
+            'text': m.group(1),
+            'line': self.l
         })
+        self.l += len(m.group(0))
 
 
 class Printer:
@@ -123,7 +134,7 @@ class Printer:
 
 class Compiler:
     lexer_class = Lexer
-    initial_descriptor_values = {'attribute': '', 'action_text': ''}
+    initial_descriptor_values = {'temp': ''}
 
     def __init__(self, lexer=None, **kwargs):
         if not lexer:
@@ -133,20 +144,20 @@ class Compiler:
 
         self.tokens = []
         self.entity_table = {}
-        self.current_descriptor = None
 
-        for descriptor_name, value in self.initial_descriptor_values.items():
-            setattr(self, descriptor_name, value)
+        self.temp_text = ''
 
-    def init_descriptor(self, descriptor_name):
-        setattr(
-            self, descriptor_name,
-            self.initial_descriptor_values[descriptor_name]
-        )
+    def get_position(self):
+        line = self.token['line']
+        here = self.lexer.full_text[:line]
+        here_split = here.split('\n')
+        last_line_length = len(here_split[-1]) + 1
+        which_line_num = len(here_split)
+        return "L{}:C{}".format(which_line_num, last_line_length)
 
-    def use_assigned_value(self, descriptor_name):
-        data = getattr(self, descriptor_name)
-        self.init_descriptor(descriptor_name)
+    def use_assigned_value(self):
+        data = self.temp_text
+        self.temp_text = ''
         return data
 
     def pop(self):
@@ -183,10 +194,14 @@ class Compiler:
         return getattr(self, 'output_%s' % t)()
 
     def assign(self, text):
-        data = getattr(self, self.current_descriptor)
-        setattr(
-            self, self.current_descriptor,
-            data + '\n' + text if data else text
+        if not self.entity_table:
+            raise SyntaxError(
+                "Entity does not exist, but it has symbol related to Entity.\n"
+                "{}".format(self.get_position()))
+
+        self.temp_text = (
+            self.temp_text + '\n' + text
+            if self.temp_text else text
         )
 
     def get_entity(self, name):
@@ -200,15 +215,16 @@ class Compiler:
         entity_name = self.token['text']
         self.entity = self.get_entity(name=entity_name)
 
-        self.current_descriptor = 'attribute'
-
         while self.peek()['type'] != 'entity_start':
             self.pop()
             self.token_to_code()
 
     def output_entity_separation(self):
-        self.entity.attribute = self.use_assigned_value('attribute')
-        self.current_descriptor = 'action_text'
+        if self.entity.attribute:
+            raise SyntaxError(
+                "Attribute already exists for this entity. [{}]\n{}".format(
+                    self.entity.name, self.get_position()))
+        self.entity.attribute = self.use_assigned_value()
 
     def output_text(self):
         text = self.token['text']
@@ -222,6 +238,6 @@ class Compiler:
         next_entity = self.get_entity(name=next_entity_name)
         self.entity.actions.append(
             Action(
-                name=self.use_assigned_value('action_text'), entity=next_entity
+                name=self.use_assigned_value(), entity=next_entity
             )
         )
