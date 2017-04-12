@@ -16,13 +16,17 @@ def preprocessing(text, tab=4):
 
 class Action:
     def __init__(self, name, entity):
-        self.name = name
+        splitted_name = name.split('.')
+        self.name = splitted_name[1]
+        self.num = splitted_name[0]
         self.entity = entity
 
 
 class Entity:
     def __init__(self, name):
-        self.name = name
+        splitted_name = name.split('.')
+        self.num = splitted_name[0]
+        self.name = splitted_name[1]
         self.attribute = ''
         self.action_text = ''
         self.actions = []
@@ -205,10 +209,11 @@ class Compiler:
         )
 
     def get_entity(self, name):
-        entity = self.entity_table.get(name)
+        exact_name = name.split('.')[1]
+        entity = self.entity_table.get(exact_name)
         if not entity:
             entity = Entity(name=name)
-            self.entity_table[name] = entity
+            self.entity_table[exact_name] = entity
         return entity
 
     def output_entity(self):

@@ -1,0 +1,15 @@
+[1.Home]
+10007.click
+===> 4.TodoList
+2.quit
+===> 3.End
+
+[4.TodoList]
+10005.addTodo
+===> 4.TodoList
+10008.removeTodo
+===> 4.TodoList
+10006.back
+===> 1.Home
+2.quit
+===> 3.End

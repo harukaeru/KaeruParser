@@ -12,14 +12,12 @@ class TestClass:
         entity_table = self.compiler.entity_table
 
         home = entity_table.get('Home')
-        assert home.attribute == "This is home"
         assert home.actions[0].name == 'click'
         assert home.actions[0].entity == entity_table.get("TodoList")
         assert home.actions[1].name == 'quit'
         assert home.actions[1].entity == entity_table.get("End")
 
         todo_list = entity_table.get('TodoList')
-        assert todo_list.attribute == "Todo List"
         assert todo_list.actions[0].name == "addTodo"
         assert todo_list.actions[0].entity == entity_table.get("TodoList")
         assert todo_list.actions[1].name == "removeTodo"

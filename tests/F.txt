@@ -1,0 +1,15 @@
+[1.Home]
+click
+===> TodoList
+2.quit
+===> 3.End
+
+[TodoList]
+addTodo
+===> TodoList
+removeTodo
+===> TodoList
+back
+===> 1.Home
+2.quit
+===> 3.End

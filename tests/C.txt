@@ -1,19 +1,19 @@
-[Home]
-This is home
+[1.Home]
+a
 ---
-click
-===> TodoList
-quit
-===> End
+2.click
+===> 3.TodoList
+4.quit
+===> 5.End
 
-TodoList]
-Todo List
+3.TodoList]
+a
 ---
-addTodo
-===> TodoList
-removeTodo
-===> TodoList
-back
-===> Home
-quit
-===> End
+6.addTodo
+===> 3.TodoList
+7.removeTodo
+===> 3.TodoList
+8.back
+===> 1.Home
+4.quit
+===> 5.End
