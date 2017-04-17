@@ -1,3 +1,6 @@
 **/.cache/*
 *.pyc
 run.py
+*.egg-info/*
+dist/*
+build/*

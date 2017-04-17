@@ -1,5 +1,6 @@
 import re
 import inspect
+from .pre_kaeru_parser import *
 
 _escape_pattern = re.compile(r'&(?!#?\w+;)')
 _newline_pattern = re.compile(r'\r\n|\r')

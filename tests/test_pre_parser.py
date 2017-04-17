@@ -1,5 +1,4 @@
-import pytest
-from pre_kaeru_parser import add_numbers
+from kaeru_parser import add_numbers
 
 
 class TestClass:
