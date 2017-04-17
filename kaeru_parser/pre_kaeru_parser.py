@@ -9,6 +9,8 @@ def add_numbers(filename):
         matched = re.match(r'(?:===>|) *(\d+)\.[a-zA-Z_]*', line)
         if matched:
             current_num = int(matched.groups()[0])
+            if current_num >= 10000:
+                current_num -= 10000
             num = max(num, current_num)
 
     matches = set()
