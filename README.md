@@ -89,4 +89,4 @@ You can parse and convert such as the followings.
 
 ```
 
-If you want to know more, run `py.test` command for test and then go to `tests` directory.
+If you want to know more, run `py.test` command for test and read sources in `tests` directory.
