@@ -2,7 +2,7 @@
 ## Concept
 `kaeru_parser` is the tool convert guiflow-markdown format to python class has relations.
 
-You can use them for creating DB Table that also has relations, for doing something, and for etc...
+You can use them to create DB Table that also has relations, to do something, and etc...
 
 ## What is Guiflow?
 Here is the link to Guiflow
